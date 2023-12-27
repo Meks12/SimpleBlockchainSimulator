@@ -1,3 +1,7 @@
-# Projekt
+from fastapi import FastAPI
 
-# Proba drugog commita 
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
