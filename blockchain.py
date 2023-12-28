@@ -25,4 +25,9 @@ class blockchain:
     def __init__(self):
         self.chain = []
         self.create_genesis_block()
-    #Inicijalizacija blockchaina sa praznom listom, kreiranje prvog bloka u blockchainu
+    #Inicijalizacija blockchaina sa praznom listom
+        
+def create_genesis_block(self):
+    genesis_block = Block(0, [], time.time(), "0")
+    self.chain.append(genesis_block)
+    #Prvi block u blockchainu
