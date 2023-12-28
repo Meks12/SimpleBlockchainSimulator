@@ -1,0 +1,1 @@
+BlockchainSimulation projekt iz predmeta raspodjeljeni sustavi
