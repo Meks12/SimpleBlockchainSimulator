@@ -67,3 +67,27 @@ class blockchain:
                 return False
 
         return True
+    
+    def resolve_conflicts(self):
+        #Metoda prolazi kroz cvorove te provjerava njihovu kopiju blockchaina
+        #provjerava "chainove" te ih usporeduje
+        neighbours = self.nodes
+        new_chain = None
+        max_lenght = len(self.chain)
+
+        for node in neighbours:
+            response = requests.get(f'http://{node}/chain')
+
+            if response.status_code == 200:
+                length = response.json()['length']
+                chain = response.json()['chain']
+
+                if length > max_lenght and self.valid_chain(chain):
+                    max_lenght = length
+                    new_chain = chain
+        
+        if new_chain:
+            self.chain = new_chain
+            return True
+
+        return False
