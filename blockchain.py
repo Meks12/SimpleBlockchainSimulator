@@ -20,3 +20,9 @@ class Block:
         block_string = f"{self.index}{self.transactions}{self.timestamp}{self.previous_hash}{self.nonce}"
         return hashlib.sha256(block_string.encode()).hexdigest()
     #Ova metoda racuna hash blocka
+
+class blockchain:
+    def __init__(self):
+        self.chain = []
+        self.create_genesis_block()
+    #Inicijalizacija blockchaina sa praznom listom, kreiranje prvog bloka u blockchainu
