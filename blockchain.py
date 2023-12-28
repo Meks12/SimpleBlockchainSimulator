@@ -23,7 +23,7 @@ class Block:
         return hashlib.sha256(block_string.encode()).hexdigest()
         #Ova metoda racuna hash blocka
 
-class blockchain:
+class Blockchain:
     def __init__(self):
         self.chain = []
         self.nodes = set()
