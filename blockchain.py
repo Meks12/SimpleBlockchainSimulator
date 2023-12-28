@@ -46,6 +46,10 @@ class blockchain:
     def register_node(self, address):
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
+
+    def hash_block(block):
+        block_string = f"{block['index']}{block['transactions']}{block['timestamp']}{block['previous_hash']}{block['nonce']}"
+        return hashlib.sha256(block_string.encode()).hexdigest()
     
     def valid_chain(self, chain):
         #Validacija Blockchaina
