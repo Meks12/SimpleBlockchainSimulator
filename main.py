@@ -21,5 +21,10 @@ def get_chain():
 
 @app.post("/transactions/new")
 def add_transaction(transaction: dict):
-    # dodavanje transakcije u bc
+    #Dodavanje transakcije u bc
     return {"message": "Transaction will be added"}
+
+@app.get("/mine")
+def mine_unconfirmed_transactions():
+    #Mining novog blocka
+    return {"Message" "New block mined"}
