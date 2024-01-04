@@ -22,9 +22,18 @@ def get_chain():
 @app.post("/transactions/new")
 def add_transaction(transaction: dict):
     #Dodavanje transakcije u bc
-    return {"message": "Transaction will be added"}
+    return {"message": "Transaction will be added to blockchain"}
 
 @app.get("/mine")
 def mine_unconfirmed_transactions():
     #Mining novog blocka
-    return {"Message" "New block mined"}
+    return {"Message" "New block has been mined"}
+
+class Node(BaseModel):
+    address: str
+
+@app.post("/nodes/register")
+def register_node(node: Node):
+    blockchain.register_node(node.address)
+    return {"message": "New node added", "total_nodes in blockchain": list(blockchain.nodes)}
+    #Registriranje novog cvora u blockchain
