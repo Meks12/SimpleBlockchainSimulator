@@ -12,3 +12,9 @@ from pydantic import BaseModel
 
 app = FastAPI()
 blockchain = Blockchain()
+
+@app.get("/chain")
+def get_chain():
+    chain_data = [block.__dict__ for block in blockchain.chain]
+    return {"length": len(chain_data), "chain": chain_data}
+    #Dohvaca blockchain i vraca vrijednost bloka i duzinu blockchaina
