@@ -69,7 +69,8 @@ class Blockchain:
         self.chain.append(new_block)
         self.unconfirmed_transactions = []
         return new_block
-        #Nije jos definirano do kraja
+        #Nije jos definirano do kraja - ova funkcija trebala bi napraviti novi block, dodati sve ne potvrdene transakcije, kalkulirat hash i dodat to na bc
+    
 
     def valid_chain(self, chain):
         #Validacija Blockchaina

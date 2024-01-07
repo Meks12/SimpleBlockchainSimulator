@@ -5,15 +5,14 @@ from pydantic import BaseModel
 app = FastAPI()
 blockchain = Blockchain()
 
-@app.get("/chain")
-def get_chain():
-    chain_data = [block.__dict__ for block in blockchain.chain]
-    return {"length": len(chain_data), "chain": chain_data}
-    #Dohvaca blockchain i vraca vrijednost bloka i duzinu blockchaina
+class Transaction(BaseModel):
+    sender: str
+    recipient: str
+    amount: float 
 
 @app.post("/transactions/new")
-def add_transaction(transaction: dict):
-    #Dodavanje transakcije u bc
+def add_transaction(transaction: Transaction):
+    blockchain.add_new_transaction(transaction.model_dump())
     return {"message": "Transaction will be added to blockchain"}
 
 @app.get("/mine")
@@ -39,3 +38,9 @@ def consensus_algorithm():
         response = {"message": "Our chain is accurate (authoritative)", "chain": blockchain.chain}
     return response
     #Sluzi za provjeravanje najduzeg chain-a uz pomoc konsenzus algoritma
+
+@app.get("/chain")
+def get_chain():
+    chain_data = [block.__dict__ for block in blockchain.chain]
+    return {"length": len(chain_data), "chain": chain_data}
+    #Dohvaca blockchain i vraca vrijednost bloka i duzinu blockchaina
