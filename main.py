@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from blockchain import Blockchain
 from pydantic import BaseModel
 
@@ -14,11 +14,16 @@ class Transaction(BaseModel):
 def add_transaction(transaction: Transaction):
     blockchain.add_new_transaction(transaction.model_dump())
     return {"message": "Transaction will be added to blockchain"}
+    # Prima nove tranksakcije i dodaje ih u blockchain
 
 @app.get("/mine")
-def mine_unconfirmed_transactions():
-    #Mining novog blocka
-    return {"Message" "New block has been mined"}
+def mine():
+    new_block = blockchain.mine()
+    if new_block is None:
+        raise HTTPException(status_code=400, detail="No available transactions to mine")
+    return {"message": "New block has mined successfully", "block": new_block}
+    #Rudarenje novih blokova 
+        
 
 class Node(BaseModel):
     address: str
