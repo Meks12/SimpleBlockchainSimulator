@@ -54,7 +54,23 @@ class Blockchain:
     def add_new_transaction(self, transaction):
         self.mine_unconfirmed_transactions.append(transaction)
         #Dodaje novu transakciju na listu transakcija koje cekaju sljedeci "mined node"
-    
+
+    def mine(self):
+        if not self.mine_unconfirmed_transactions:
+            return None
+        
+        last_block = self.last_block()
+        new_block = Block(index=last_block.index + 1, 
+                          transactions = self.mine_unconfirmed_transactions, 
+                          timestamp = time.time(), previous_hash = last_block.hash)
+        # POF ili neki algoritam treba tu
+
+        new_block.hash = new_block.compute_hash()
+        self.chain.append(new_block)
+        self.unconfirmed_transactions = []
+        return new_block
+        #Nije jos definirano do kraja
+
     def valid_chain(self, chain):
         #Validacija Blockchaina
         #Prvi block nakon genesisa
