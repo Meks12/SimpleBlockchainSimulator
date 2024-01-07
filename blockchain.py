@@ -10,7 +10,7 @@ class Block:
         self.timestamp = timestamp
         self.previous_hash = previous_hash
         self.nonce = nonce
-        self.hash = self.compute.hash()
+        self.hash = self.compute_hash()
         #Index - pozicija blocka u blockchainu
         #Transactions - lista transakcija u blocku
         #Timestamp = vrijeme kada je block napravljen
