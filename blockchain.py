@@ -51,6 +51,10 @@ class Blockchain:
         block_string = f"{block['index']}{block['transactions']}{block['timestamp']}{block['previous_hash']}{block['nonce']}"
         return hashlib.sha256(block_string.encode()).hexdigest()
     
+    def add_new_transaction(self, transaction):
+        self.mine_unconfirmed_transactions.append(transaction)
+        #Dodaje novu transakciju na listu transakcija koje cekaju sljedeci "mined node"
+    
     def valid_chain(self, chain):
         #Validacija Blockchaina
         #Prvi block nakon genesisa
