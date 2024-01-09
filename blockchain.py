@@ -49,7 +49,6 @@ class Blockchain:
         if parsed_url.netloc:
             self.nodes.add(parsed_url.netloc)
         elif parsed_url.path:
-            # Accepts URLs without a scheme, like '127.0.0.1:5000'.
             self.nodes.add(parsed_url.path)
         else:
             raise ValueError('Invalid URL format')
@@ -96,25 +95,31 @@ class Blockchain:
         return True
     
     def resolve_conflicts(self):
-        #Metoda prolazi kroz cvorove te provjerava njihovu kopiju blockchaina
-        #provjerava "chainove" te ih usporeduje
         neighbours = self.nodes
         new_chain = None
-        max_lenght = len(self.chain)
+        max_length = len(self.chain)
 
         for node in neighbours:
-            response = requests.get(f'http://{node}/chain')
+            try:
+                response = requests.get(f'http://{node}/chain')
+            except requests.exceptions.RequestException as e:
+                print(f"Error connecting to node {node}: {e}")
+                continue  
 
             if response.status_code == 200:
                 length = response.json()['length']
                 chain = response.json()['chain']
 
-                if length > max_lenght and self.valid_chain(chain):
-                    max_lenght = length
+                if length > max_length and self.valid_chain(chain):
+                    max_length = length
                     new_chain = chain
-        
+
         if new_chain:
             self.chain = new_chain
             return True
 
         return False
+        #Metoda prolazi kroz cvorove te provjerava njihovu kopiju blockchaina
+        #provjerava "chainove" te ih usporeduje
+
+    
