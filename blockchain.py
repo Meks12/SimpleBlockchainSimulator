@@ -47,10 +47,6 @@ class Blockchain:
     def register_node(self, address):
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
-
-    def hash_block(block):
-        block_string = f"{block['index']}{block['transactions']}{block['timestamp']}{block['previous_hash']}{block['nonce']}"
-        return hashlib.sha256(block_string.encode()).hexdigest()
     
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
@@ -72,6 +68,9 @@ class Blockchain:
         return new_block
         #Nije jos definirano do kraja - ova funkcija trebala bi napraviti novi block, dodati sve ne potvrdene transakcije, kalkulirat hash i dodat to na bc
     
+    def hash_block(block):
+        block_string = f"{block['index']}{block['transactions']}{block['timestamp']}{block['previous_hash']}{block['nonce']}"
+        return hashlib.sha256(block_string.encode()).hexdigest()
 
     def valid_chain(self, chain):
         #Validacija Blockchaina
