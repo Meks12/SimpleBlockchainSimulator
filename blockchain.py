@@ -46,7 +46,13 @@ class Blockchain:
     
     def register_node(self, address):
         parsed_url = urlparse(address)
-        self.nodes.add(parsed_url.netloc)
+        if parsed_url.netloc:
+            self.nodes.add(parsed_url.netloc)
+        elif parsed_url.path:
+            # Accepts URLs without a scheme, like '127.0.0.1:5000'.
+            self.nodes.add(parsed_url.path)
+        else:
+            raise ValueError('Invalid URL format')
     
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
