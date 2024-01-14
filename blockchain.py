@@ -38,9 +38,9 @@ class Blockchain:
          self.chain.append(genesis_block)
         #Prvi block u blockchainu
     
-    def add_new_block(self, block):
-        self.chain.append(block)
-        #Dodaje novi block u blockchain
+   # def add_new_block(self, block):
+    #    self.chain.append(block)
+     #   #Dodaje novi block u blockchain
 
     def last_block(self):
         return self. chain[-1]
@@ -57,6 +57,18 @@ class Blockchain:
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
     
+    def add_new_transaction(self, transaction):
+        self.unconfirmed_transactions.append(transaction)
+        #Dodaje novu transakciju na listu transakcija koje cekaju sljedeci "mined node"
+
+    def add_new_block(self, block, proof):
+        last_block = self.last_block()
+        if last_block.hash != block.previous_hash or not self.valid_proof(last_block.proof, proof):
+            return False
+        block.hash = block.compute_hash()
+        self.chain.append(block)
+        return True
+    
     def register_node(self, address):
         parsed_url = urlparse(address)
         if parsed_url.netloc:
@@ -65,10 +77,6 @@ class Blockchain:
             self.nodes.add(parsed_url.path)
         else:
             raise ValueError('Invalid URL format')
-    
-    def add_new_transaction(self, transaction):
-        self.unconfirmed_transactions.append(transaction)
-        #Dodaje novu transakciju na listu transakcija koje cekaju sljedeci "mined node"
 
     def mine(self):
         if not self.unconfirmed_transactions:
@@ -76,8 +84,6 @@ class Blockchain:
 
         last_block = self.last_block()
         proof = self.proof_of_work(last_block.proof)
-        
-        # Add reward for mining here (if applicable)
 
         new_block = Block(index=last_block.index + 1,
                           transactions=self.unconfirmed_transactions,
