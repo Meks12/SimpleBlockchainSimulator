@@ -4,11 +4,12 @@ import requests
 from urllib.parse import urlparse
 
 class Block:
-    def __init__(self, index, transactions, timestamp, previous_hash, nonce=0):
+    def __init__(self, index, transactions, timestamp, previous_hash, proof, nonce=0):
         self.index = index
         self.transactions = transactions
         self.timestamp = timestamp
         self.previous_hash = previous_hash
+        self.proof = proof
         self.nonce = nonce
         self.hash = self.compute_hash()
         #Index - pozicija blocka u blockchainu
