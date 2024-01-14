@@ -46,6 +46,17 @@ class Blockchain:
         return self. chain[-1]
         #Vraca zadnji block u blockchainu
     
+    def proof_of_work(self, last_proof):
+        proof = 0
+        while self.valid_proof(last_proof, proof) is False:
+            proof += 1
+        return proof
+    
+    def valid_proof(last_proof, proof):
+        guess = f'{last_proof}{proof}'.encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+        return guess_hash[:4] == "0000"
+    
     def register_node(self, address):
         parsed_url = urlparse(address)
         if parsed_url.netloc:
