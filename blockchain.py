@@ -33,7 +33,8 @@ class Blockchain:
         #Inicijalizacija blockchaina sa praznom listom
         
     def create_genesis_block(self):
-         genesis_block = Block(0, [], time.time(), "0")
+         genesis_block = Block(0, [], time.time(), "0", proof=100)
+         genesis_block.hash = genesis_block.compute_hash()
          self.chain.append(genesis_block)
         #Prvi block u blockchainu
     
