@@ -44,12 +44,12 @@ class Blockchain:
     
     def proof_of_work(self, last_proof):
         proof = 0
-        while self.valid_proof(last_proof, proof) is False:
+        while not self.valid_proof(last_proof, proof):
             proof += 1
         return proof
         #Metoda proof of work - vjerojatno treba dorada
     
-    def valid_proof(last_proof, proof):
+    def valid_proof(self, last_proof, proof):
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
@@ -83,7 +83,8 @@ class Blockchain:
             return None
 
         last_block = self.last_block()
-        proof = self.proof_of_work(last_block.proof)
+        last_proof = last_block.proof
+        proof = self.proof_of_work(last_proof)
 
         new_block = Block(index=last_block.index + 1,
                           transactions=self.unconfirmed_transactions,
@@ -93,6 +94,7 @@ class Blockchain:
         new_block.hash = new_block.compute_hash()
         self.chain.append(new_block)
         self.unconfirmed_transactions = []
+        
         return new_block
         #Mining novih blokova, izvrsavanje pof algoritma i dodavanje novog bloka u sustav - dorada 
 
