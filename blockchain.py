@@ -37,10 +37,6 @@ class Blockchain:
          genesis_block.hash = genesis_block.compute_hash()
          self.chain.append(genesis_block)
         #Prvi block u blockchainu
-    
-   # def add_new_block(self, block):
-    #    self.chain.append(block)
-     #   #Dodaje novi block u blockchain
 
     def last_block(self):
         return self. chain[-1]
@@ -99,7 +95,7 @@ class Blockchain:
         block_string = f"{block['index']}{block['transactions']}{block['timestamp']}{block['previous_hash']}{block['nonce']}"
         return hashlib.sha256(block_string.encode()).hexdigest()
 
-    def valid_chain(self, chain):
+    def is_chain_valid(self, chain):
         #Validacija Blockchaina
         #Prvi block nakon genesisa
         for i in range(1, len(chain)):
@@ -107,32 +103,28 @@ class Blockchain:
             previous_block = chain[i - 1]
 
             #Sadasnji hash blocka
-            if current_block['hash'] != self.hash_block(current_block):
+            if current_block.hash != current_block.compute_hash():
                 return False
 
             #Prijasnji hash blocka
-            if current_block['previous_hash'] != previous_block['hash']:
+            if current_block.previous_hash != previous_block.hash:
                 return False
-
+            
         return True
     
     def resolve_conflicts(self):
         neighbours = self.nodes
         new_chain = None
         max_length = len(self.chain)
-
+      
         for node in neighbours:
-            try:
-                response = requests.get(f'http://{node}/chain')
-            except requests.exceptions.RequestException as e:
-                print(f"Error connecting to node {node}: {e}")
-                continue  
+            response = requests.get(f'http://{node}/chain')
 
             if response.status_code == 200:
                 length = response.json()['length']
                 chain = response.json()['chain']
 
-                if length > max_length and self.valid_chain(chain):
+                if length > max_length and self.is_chain_valid(chain):
                     max_length = length
                     new_chain = chain
 
@@ -141,7 +133,5 @@ class Blockchain:
             return True
 
         return False
-        #Metoda prolazi kroz cvorove te provjerava njihovu kopiju blockchaina
-        #provjerava "chainove" te ih usporeduje
 
     
