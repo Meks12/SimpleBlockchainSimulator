@@ -22,7 +22,7 @@ class Block:
     def compute_hash(self):
         block_string = f"{self.index}{self.transactions}{self.timestamp}{self.previous_hash}{self.nonce}"
         return hashlib.sha256(block_string.encode()).hexdigest()
-        #Ova metoda racuna hash blocka
+        #Ova metoda kreira hash blocka za osiguranje integriteta
 
 class Blockchain:
     def __init__(self):
@@ -36,7 +36,7 @@ class Blockchain:
          genesis_block = Block(0, [], time.time(), "0", proof=100)
          genesis_block.hash = genesis_block.compute_hash()
          self.chain.append(genesis_block)
-        #Prvi block u blockchainu
+        #Prvi block u blockchainu sa predefiniranim vrijednostima
 
     def last_block(self):
         return self. chain[-1]
@@ -47,12 +47,14 @@ class Blockchain:
         while self.valid_proof(last_proof, proof) is False:
             proof += 1
         return proof
+        #Metoda proof of work - vjerojatno treba dorada
     
     def valid_proof(last_proof, proof):
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
-    
+        #Validira ako proof_value rjesava pof zadatak
+
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
         #Dodaje novu transakciju na listu transakcija koje cekaju sljedeci "mined node"
@@ -64,6 +66,7 @@ class Blockchain:
         block.hash = block.compute_hash()
         self.chain.append(block)
         return True
+        #Dodaje novi block u blockchain nakon validacije te provjere prethodnog hasha - potencijalna dorada
     
     def register_node(self, address):
         parsed_url = urlparse(address)
@@ -73,6 +76,7 @@ class Blockchain:
             self.nodes.add(parsed_url.path)
         else:
             raise ValueError('Invalid URL format')
+        #Dodaje cvor u mrezu ostalih cvorova
 
     def mine(self):
         if not self.unconfirmed_transactions:
@@ -90,10 +94,12 @@ class Blockchain:
         self.chain.append(new_block)
         self.unconfirmed_transactions = []
         return new_block
+        #Mining novih blokova, izvrsavanje pof algoritma i dodavanje novog bloka u sustav - dorada 
 
     def hash_block(block):
         block_string = f"{block['index']}{block['transactions']}{block['timestamp']}{block['previous_hash']}{block['nonce']}"
         return hashlib.sha256(block_string.encode()).hexdigest()
+        #Racuna hash blocka
 
     def is_chain_valid(self, chain):
         #Validacija Blockchaina
@@ -133,5 +139,5 @@ class Blockchain:
             return True
 
         return False
-
+        #Osigurava da se svi cvorovi slazu oko najduzeg tocnog lanca
     
