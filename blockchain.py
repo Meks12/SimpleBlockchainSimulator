@@ -73,19 +73,22 @@ class Blockchain:
     def mine(self):
         if not self.unconfirmed_transactions:
             return None
-        
-        last_block = self.last_block()
-        new_block = Block(index=last_block.index + 1, 
-                          transactions = self.unconfirmed_transactions, 
-                          timestamp = time.time(), previous_hash = last_block.hash)
-        # POF ili neki algoritam treba tu
 
+        last_block = self.last_block()
+        proof = self.proof_of_work(last_block.proof)
+        
+        # Add reward for mining here (if applicable)
+
+        new_block = Block(index=last_block.index + 1,
+                          transactions=self.unconfirmed_transactions,
+                          timestamp=time.time(),
+                          previous_hash=last_block.hash,
+                          proof=proof)
         new_block.hash = new_block.compute_hash()
         self.chain.append(new_block)
         self.unconfirmed_transactions = []
         return new_block
-        #Nije jos definirano do kraja - ova funkcija trebala bi napraviti novi block, dodati sve ne potvrdene transakcije, kalkulirat hash i dodat to na bc
-    
+
     def hash_block(block):
         block_string = f"{block['index']}{block['transactions']}{block['timestamp']}{block['previous_hash']}{block['nonce']}"
         return hashlib.sha256(block_string.encode()).hexdigest()
