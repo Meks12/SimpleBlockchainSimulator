@@ -21,7 +21,7 @@ def mine():
     new_block = blockchain.mine()
     if new_block is None:
         raise HTTPException(status_code=400, detail="No available transactions to mine")
-    return {"message": "New block has mined successfully", "block": new_block}
+    return {"message": "New block has mined successfully", "index of block": new_block.index}
     #Rudarenje novih blokova 
         
 
@@ -46,6 +46,8 @@ def consensus_algorithm():
 
 @app.get("/chain")
 def get_chain():
-    chain_data = [block.__dict__ for block in blockchain.chain]
+    chain_data = []
+    for block in blockchain.chain:
+        chain_data.append(block.__dict__)
     return {"length": len(chain_data), "chain": chain_data}
     #Dohvaca blockchain i vraca vrijednost bloka i duzinu blockchaina
