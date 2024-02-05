@@ -10,6 +10,11 @@ class Transaction(BaseModel):
     recipient: str
     amount: float 
 
+class NodeRegister(BaseModel):
+    sender: str
+    recipient: str
+    amount: float
+
 @app.post("/transactions/new")
 def add_transaction(transaction: Transaction):
     blockchain.add_new_transaction(transaction.model_dump())
