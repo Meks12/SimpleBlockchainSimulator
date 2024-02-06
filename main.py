@@ -3,6 +3,9 @@ from blockchain import Blockchain, Block
 import requests
 from typing import List
 from pydantic import BaseModel
+import os 
+
+NODE_ADDRESS = os.getenv('NODE_ADDRESS', 'http://127.0.0.1:8000')
 
 app = FastAPI()
 blockchain = Blockchain()
@@ -21,20 +24,27 @@ async def add_transaction(transaction: Transaction):
     transaction_data = transaction.model_dump()
     blockchain.add_new_transaction(transaction_data)
     for node in blockchain.nodes:
-        if node != "your_node_identifier": #Treba ovdje logiku stavit
+        if node != NODE_ADDRESS: 
             requests.post(f'http://{node}/transactions/new', json=transaction_data)
     return {"message": "Transaction will be added to blockchain"}
     # Prima nove tranksakcije i dodaje ih u blockchain
+
 
 @app.get("/mine")
 def mine():
     new_block = blockchain.mine()
     if new_block:
+        block_data = new_block.__dict__
+        block_data["transactions"] = [tx.__dict__ for tx in new_block.transactions]
         for node in blockchain.nodes:
-            if node!= "your_node_identifier": #Treba ovdje logiku staviti
-                requests.post(f'http://{node}/blocks/new', json=new_block.__dict__)
-        return{"message": "New block has been forged", "block": new_block.__dict__}
-    return HTTPException(status_code=500, detail="Mining failed")
+            if node != NODE_ADDRESS:  
+                try:
+                    requests.post(f'http://{node}/blocks/new', json=block_data)
+                except requests.exceptions.RequestException as e:
+                    print(f"Error broadcasting block to {node}: {e}")
+        return {"message": "New block has been forged", "block": block_data}
+    else:
+        return HTTPException(status_code=500, detail="Failed to mine a new block")
     #Rudarenje novih blokova 
         
 
