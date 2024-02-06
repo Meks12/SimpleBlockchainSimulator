@@ -28,9 +28,12 @@ async def add_transaction(transaction: Transaction):
 @app.get("/mine")
 def mine():
     new_block = blockchain.mine()
-    if new_block is None:
-        raise HTTPException(status_code=400, detail="No available transactions to mine")
-    return {"message": "New block has mined successfully", "index of block": new_block.index}
+    if new_block:
+        for node in blockchain.nodes:
+            if node!= "your_node_identifier": #Treba ovdje logiku staviti
+                requests.post(f'http://{node}/blocks/new', json=new_block.__dict__)
+        return{"message": "New block has been forged", "block": new_block.__dict__}
+    return HTTPException(status_code=500, detail="Mining failed")
     #Rudarenje novih blokova 
         
 
