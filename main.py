@@ -44,6 +44,13 @@ def register_node(node: NodeRegister):
     return {"message": "New node added", "total_nodes in blockchain": list(blockchain.nodes)}
     #Registriranje novog cvora u blockchain
 
+@app.post("/blocks/new")
+def recieve_new_block(block: dict):
+    #Trebam logiku ovdje staviti
+    if blockchain.validate_and_add_block(block):
+        return {"message": "Block added to the chain"}
+    return HTTPException(status_code=400, detail="Invalid block")
+
 @app.get("/nodes/resolve")
 def consensus_algorithm():
     replaced = blockchain.resolve_conflicts()
