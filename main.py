@@ -34,12 +34,19 @@ async def add_transaction(transaction: Transaction):
 def mine():
     new_block = blockchain.mine()
     if new_block:
-        block_data = new_block.__dict__
-        block_data["transactions"] = [tx.__dict__ for tx in new_block.transactions]
+        block_data = {
+            "index": new_block.index,
+            "transactions": new_block.transactions,  
+            "timestamp": new_block.timestamp,
+            "previous_hash": new_block.previous_hash,
+            "proof": new_block.proof,
+            "nonce": new_block.nonce,
+            "hash": new_block.hash
+        }
         for node in blockchain.nodes:
-            if node != NODE_ADDRESS:  
+            if node != NODE_ADDRESS:
                 try:
-                    requests.post(f'http://{node}/blocks/new', json=block_data)
+                    requests.post(f'{node}/blocks/new', json=block_data)
                 except requests.exceptions.RequestException as e:
                     print(f"Error broadcasting block to {node}: {e}")
         return {"message": "New block has been forged", "block": block_data}
