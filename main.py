@@ -15,6 +15,7 @@ class Transaction(BaseModel):
 class NodeRegister(BaseModel):
     address: str
 
+
 @app.post("/transactions/new")
 async def add_transaction(transaction: Transaction):
     transaction_data = transaction.model_dump()
@@ -37,11 +38,8 @@ def mine():
     #Rudarenje novih blokova 
         
 
-class Node(BaseModel):
-    address: str
-
 @app.post("/nodes/register")
-def register_node(node: Node):
+def register_node(node: NodeRegister):
     blockchain.register_node(node.address)
     return {"message": "New node added", "total_nodes in blockchain": list(blockchain.nodes)}
     #Registriranje novog cvora u blockchain
