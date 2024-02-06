@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
-from blockchain import Blockchain
+from blockchain import Blockchain, Block
+import requests
+from typing import List
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -11,13 +13,15 @@ class Transaction(BaseModel):
     amount: float 
 
 class NodeRegister(BaseModel):
-    sender: str
-    recipient: str
-    amount: float
+    address: str
 
 @app.post("/transactions/new")
-def add_transaction(transaction: Transaction):
-    blockchain.add_new_transaction(transaction.model_dump())
+async def add_transaction(transaction: Transaction):
+    transaction_data = transaction.model_dump()
+    blockchain.add_new_transaction(transaction_data)
+    for node in blockchain.nodes:
+        if node != "your_node_identifier": #Treba ovdje logiku stavit
+            requests.post(f'http://{node}/transactions/new', json=transaction_data)
     return {"message": "Transaction will be added to blockchain"}
     # Prima nove tranksakcije i dodaje ih u blockchain
 
