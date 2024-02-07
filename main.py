@@ -85,3 +85,7 @@ def get_chain():
         chain_data.append(block.__dict__)
     return {"length": len(chain_data), "chain": chain_data}
     #Dohvaca blockchain i vraca vrijednost bloka i duzinu blockchaina
+
+@app.get("/nodes/discover")
+async def discover_nodes():
+    return {"nodes": list(blockchain.nodes)}
