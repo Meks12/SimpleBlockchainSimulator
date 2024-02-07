@@ -141,5 +141,19 @@ class Blockchain:
             return True
 
         return False
-        #Osigurava da se svi cvorovi slazu oko najduzeg tocnog lanca
-    
+    def validate_and_add_block(self, block_data):
+        new_block = Block(
+            index=block_data["index"],
+            transactions=[Transaction(sender=tx["sender"], recipient=tx["recipient"], amount=tx["amount"]) for tx in block_data["transactions"]],
+            timestamp=block_data["timestamp"],
+            previous_hash=block_data["previous_hash"],
+            proof=block_data["proof"],
+            nonce=block_data.get("nonce", 0)
+        )
+        if new_block.previous_hash != self.chain[-1].hash:
+            return False
+        last_proof = self.chain[-1].proof
+        if not self.valid_proof(last_proof, new_block.proof):
+            return False
+        self.chain.append(new_block)
+        self.unconfirmed_transactions = []
