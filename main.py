@@ -18,6 +18,10 @@ class Transaction(BaseModel):
 class NodeRegister(BaseModel):
     address: str
 
+@app.on_event("startup")
+async def startup_event():
+    register_with_discovery_node()
+
 
 @app.post("/transactions/new")
 async def add_transaction(transaction: Transaction):
@@ -89,3 +93,16 @@ def get_chain():
 @app.get("/nodes/discover")
 async def discover_nodes():
     return {"nodes": list(blockchain.nodes)}
+
+def register_with_discovery_node():
+    discovery_node_url = "http://127.0.0.1:8000" 
+    local_node_address = NODE_ADDRESS
+    try:
+        requests.post(f"{discovery_node_url}/nodes/register", json={"address": local_node_address})
+        response = requests.get(f"{discovery_node_url}/nodes/discover")
+        if response.status_code == 200:
+            nodes = response.json().get("nodes", [])
+            for node in nodes:
+                blockchain.register_node(node)
+    except requests.exceptions.RequestException as e:
+        print(f"Error during node discovery and registration: {e}")
