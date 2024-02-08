@@ -1,7 +1,7 @@
 import hashlib
 import time
 import requests
-from main import Transaction
+#from main import Transaction
 from urllib.parse import urlparse
 
 class Block:
