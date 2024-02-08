@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from blockchain import Blockchain, Block
 import requests
+import time
+from threading import Thread
 from typing import List
 from pydantic import BaseModel
 import os 
@@ -21,6 +23,7 @@ class NodeRegister(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     register_with_discovery_node()
+    start_refresh_task()
 
 
 @app.post("/transactions/new")
@@ -106,3 +109,24 @@ def register_with_discovery_node():
                 blockchain.register_node(node)
     except requests.exceptions.RequestException as e:
         print(f"Error during node discovery and registration: {e}")
+
+def refresh_node_list():
+    while True:
+        try:
+            # Adjust the discovery_node_url as needed
+            discovery_node_url = "http://127.0.0.1:8000/nodes/discover"
+            response = requests.get(discovery_node_url)
+            if response.status_code == 200:
+                nodes = response.json().get("nodes", [])
+                for node in nodes:
+                    full_node_url = f"http://{node}"
+                    if full_node_url not in blockchain.nodes:
+                        blockchain.register_node(full_node_url)
+        except Exception as e:
+            print(f"Error during node discovery refresh: {e}")
+        time.sleep(60)  # Refresh every 60 seconds
+
+def start_refresh_task():
+    # Run the refresh task in a separate thread to avoid blocking FastAPI's event loop
+    thread = Thread(target=refresh_node_list)
+    thread.start()
