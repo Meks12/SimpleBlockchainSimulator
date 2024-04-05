@@ -7,6 +7,10 @@ from typing import List
 from pydantic import BaseModel
 import os 
 
+
+KNOWN_NODES = os.getenv('KNOWN_NODES', '').split(',')
+
+
 NODE_ADDRESS = os.getenv('NODE_ADDRESS', 'http://127.0.0.1:8000')
 
 app = FastAPI()
@@ -23,6 +27,7 @@ class NodeRegister(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     register_with_discovery_node()
+    register_with_known_nodes()
     start_refresh_task()
 
 
@@ -96,6 +101,16 @@ def get_chain():
 @app.get("/nodes/discover")
 async def discover_nodes():
     return {"nodes": list(blockchain.nodes)}
+
+def register_with_known_nodes():
+    local_node_address = NODE_ADDRESS
+    for node in KNOWN_NODES:
+        if node:  # Provjera da node adresa nije prazna
+            try:
+                # Pokušaj registracije kod svakog poznatog node-a
+                requests.post(f"http://{node}/nodes/register", json={"address": local_node_address})
+            except requests.exceptions.RequestException as e:
+                print(f"Error during registration with {node}: {e}")
 
 def register_with_discovery_node():
     discovery_node_url = "http://127.0.0.1:8000" 
