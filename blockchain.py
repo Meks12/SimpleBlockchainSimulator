@@ -1,7 +1,6 @@
 import hashlib
 import time
 import requests
-#from main import Transaction
 from urllib.parse import urlparse
 
 class Block:
@@ -143,6 +142,7 @@ class Blockchain:
 
         return False
     def validate_and_add_block(self, block_data):
+        from main import Transaction
         new_block = Block(
             index=block_data["index"],
             transactions=[Transaction(sender=tx["sender"], recipient=tx["recipient"], amount=tx["amount"]) for tx in block_data["transactions"]],

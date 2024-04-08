@@ -14,11 +14,12 @@ app = FastAPI()
 # CORS middleware konfiguracija
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  
-    allow_headers=["*"],  
+    allow_methods=["GET", "POST"],  # Explicitly allow GET and POST methods
+    allow_headers=["*"],
 )
+
 
 KNOWN_NODES = os.getenv('KNOWN_NODES', '').split(',')
 
