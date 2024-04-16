@@ -1,33 +1,28 @@
-from fastapi import FastAPI, HTTPException
-from blockchain import Blockchain, Block
-import requests
-import time
-from threading import Thread
-from typing import List
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
-import os 
+from urllib.parse import urlparse
+import requests
+import os
+from threading import Thread
+import time
 
+from blockchain import Blockchain, Block
+
+app = FastAPI()
+
+# Dodavanje CORS middleware za dozvoljavanje zahtjeva iz različitih izvora
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
-
-# CORS middleware konfiguracija
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Ovo dozvoljava sve origin, prilagodite prema potrebi
     allow_credentials=True,
-    allow_methods=["GET", "POST"],  # Explicitly allow GET and POST methods
-    allow_headers=["*"],
+    allow_methods=["*"],  # Dozvoljava sve metode
+    allow_headers=["*"],  # Dozvoljava sve header-e
 )
 
-
-KNOWN_NODES = os.getenv('KNOWN_NODES', '').split(',')
-
-
-NODE_ADDRESS = os.getenv('NODE_ADDRESS', 'http://127.0.0.1:8000')
-
-app = FastAPI()
 blockchain = Blockchain()
+nodes = set()
 
 class Transaction(BaseModel):
     sender: str
@@ -40,23 +35,20 @@ class NodeRegister(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     register_with_discovery_node()
-    register_with_known_nodes()
     start_refresh_task()
 
-
 @app.post("/transactions/new")
-async def add_transaction(transaction: Transaction):
-    transaction_data = transaction.model_dump()
+async def add_transaction(request: Request, transaction: Transaction):
+    transaction_data = transaction.dict()
     blockchain.add_new_transaction(transaction_data)
-    for node in blockchain.nodes:
-        if node != NODE_ADDRESS: 
-            requests.post(f'http://{node}/transactions/new', json=transaction_data)
+    client_host = str(request.client.host)
+    for node in nodes:
+        if "http://" + client_host not in node:  # Asumiramo da adrese node-a uključuju http://
+            requests.post(f'{node}/transactions/new', json=transaction_data)
     return {"message": "Transaction will be added to blockchain"}
-    # Prima nove tranksakcije i dodaje ih u blockchain
-
 
 @app.get("/mine")
-def mine():
+def mine(request: Request):
     new_block = blockchain.mine()
     if new_block:
         block_data = {
@@ -68,8 +60,9 @@ def mine():
             "nonce": new_block.nonce,
             "hash": new_block.hash
         }
-        for node in blockchain.nodes:
-            if node != NODE_ADDRESS:
+        client_host = str(request.client.host)
+        for node in nodes:
+            if "http://" + client_host not in node:
                 try:
                     requests.post(f'{node}/blocks/new', json=block_data)
                 except requests.exceptions.RequestException as e:
@@ -77,81 +70,59 @@ def mine():
         return {"message": "New block has been forged", "block": block_data}
     else:
         return HTTPException(status_code=500, detail="Failed to mine a new block")
-    #Rudarenje novih blokova 
-        
 
 @app.post("/nodes/register")
 def register_node(node: NodeRegister):
-    blockchain.register_node(node.address)
-    return {"message": "New node added", "total_nodes in blockchain": list(blockchain.nodes)}
-    #Registriranje novog cvora u blockchain
+    parsed_url = urlparse(node.address)
+    valid_address = parsed_url.netloc or parsed_url.path
+    if valid_address and valid_address not in blockchain.nodes:
+        blockchain.nodes.add(valid_address)
+        nodes.add(node.address)  # Maintain local and blockchain node sets
+        return {"message": "New node added", "total_nodes": list(blockchain.nodes)}
+    else:
+        return HTTPException(status_code=400, detail="Invalid or duplicate node address")
 
-@app.post("/blocks/new")
-def recieve_new_block(block: dict):
-    #Trebam logiku ovdje staviti
-    if blockchain.validate_and_add_block(block):
-        return {"message": "Block added to the chain"}
-    return HTTPException(status_code=400, detail="Invalid block")
+
+#@app.post("/register")
+#async def register_node(node_address: str):
+#   nodes.add(node_address)
+#    return {"status": "success", "message": "Node registered"}
+
+@app.get("/nodes")
+async def get_nodes():
+    return {"nodes": list(nodes)}
 
 @app.get("/nodes/resolve")
 def consensus_algorithm():
     replaced = blockchain.resolve_conflicts()
     if replaced:
-        response = {"message": "Our chain has been replaced", "new_chain is": blockchain.chain}
+        response = {"message": "Our chain has been replaced", "new_chain": blockchain.chain}
     else:
-        response = {"message": "Our chain is accurate (authoritative)", "chain": blockchain.chain}
+        response = {"message": "Our chain is authoritative", "chain": blockchain.chain}
     return response
-    #Sluzi za provjeravanje najduzeg chain-a uz pomoc konsenzus algoritma
 
 @app.get("/chain")
 def get_chain():
-    chain_data = []
-    for block in blockchain.chain:
-        chain_data.append(block.__dict__)
+    chain_data = [block.__dict__ for block in blockchain.chain]
     return {"length": len(chain_data), "chain": chain_data}
-    #Dohvaca blockchain i vraca vrijednost bloka i duzinu blockchaina
-
-@app.get("/nodes/discover")
-async def discover_nodes():
-    return {"nodes": list(blockchain.nodes)}
-
-def register_with_known_nodes():
-    local_node_address = NODE_ADDRESS
-    for node in KNOWN_NODES:
-        if node:  # Provjera da node adresa nije prazna
-            try:
-                # Pokušaj registracije kod svakog poznatog node-a
-                requests.post(f"http://{node}/nodes/register", json={"address": local_node_address})
-            except requests.exceptions.RequestException as e:
-                print(f"Error during registration with {node}: {e}")
 
 def register_with_discovery_node():
-    discovery_node_url = "http://127.0.0.1:8000" 
-    local_node_address = NODE_ADDRESS
-    try:
-        requests.post(f"{discovery_node_url}/nodes/register", json={"address": local_node_address})
-        response = requests.get(f"{discovery_node_url}/nodes/discover")
-        if response.status_code == 200:
-            nodes = response.json().get("nodes", [])
-            for node in nodes:
-                blockchain.register_node(node)
-    except requests.exceptions.RequestException as e:
-        print(f"Error during node discovery and registration: {e}")
+    # Potencijalna implementacija za registraciju s centralnim discovery nodeom
+    pass
+
+def start_refresh_task():
+    thread = Thread(target=refresh_node_list)
+    thread.start()
 
 def refresh_node_list():
     while True:
         try:
-            discovery_node_url = "http://127.0.0.1:8000/nodes/discover"
-            response = requests.get(discovery_node_url)
-            if response.status_code == 200:
-                nodes = response.json().get("nodes", [])
-                for node in nodes:
-                    full_node_url = f"http://{node}"
-                    if full_node_url not in blockchain.nodes:
-                        blockchain.register_node(full_node_url)
+            for node in list(nodes):  # Iterate through a static list snapshot
+                response = requests.get(f"http://{node}/nodes")
+                if response.status_code == 200:
+                    new_nodes = response.json().get("nodes", [])
+                    nodes.update(new_nodes)  # Update the global nodes set
         except Exception as e:
             print(f"Error during node discovery refresh: {e}")
-        time.sleep(60)  
-def start_refresh_task():
-    thread = Thread(target=refresh_node_list)
-    thread.start()
+        time.sleep(60)
+
