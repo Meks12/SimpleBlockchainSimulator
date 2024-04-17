@@ -43,9 +43,13 @@ async def add_transaction(request: Request, transaction: Transaction):
     blockchain.add_new_transaction(transaction_data)
     client_host = str(request.client.host)
     for node in nodes:
-        if "http://" + client_host not in node:  # Asumiramo da adrese node-a uključuju http://
+        if "http://" + client_host not in node:  # Pretpostavljamo da adrese node-a uključuju http://
             requests.post(f'{node}/transactions/new', json=transaction_data)
     return {"message": "Transaction will be added to blockchain"}
+
+@app.get("/transactions/unconfirmed")
+async def get_unconfirmed_transactions():
+    return {"unconfirmed_transactions": blockchain.get_unconfirmed_transactions()}
 
 @app.get("/mine")
 def mine(request: Request):
@@ -117,11 +121,11 @@ def start_refresh_task():
 def refresh_node_list():
     while True:
         try:
-            for node in list(nodes):  # Iterate through a static list snapshot
+            for node in list(nodes): 
                 response = requests.get(f"http://{node}/nodes")
                 if response.status_code == 200:
                     new_nodes = response.json().get("nodes", [])
-                    nodes.update(new_nodes)  # Update the global nodes set
+                    nodes.update(new_nodes)  
         except Exception as e:
             print(f"Error during node discovery refresh: {e}")
         time.sleep(60)

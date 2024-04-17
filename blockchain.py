@@ -131,3 +131,6 @@ class Blockchain:
                 return False
             previous_block = block
         return True
+
+    def get_unconfirmed_transactions(self):
+        return self.unconfirmed_transactions
