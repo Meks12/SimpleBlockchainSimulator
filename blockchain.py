@@ -38,7 +38,7 @@ class Block:
             proof=block_data['proof'],
             nonce=block_data.get('nonce', 0)
         )
-        block.hash = block_data['hash']  # Assume the hash provided is correct
+        block.hash = block_data['hash']  
         return block
 
 class Blockchain:
@@ -110,7 +110,7 @@ class Blockchain:
             if response.status_code == 200:
                 length = response.json()['length']
                 chain_data = response.json()['chain']
-                # Convert the list of dicts to list of Blocks
+                
                 chain = [Block.from_dict(block) for block in chain_data]
                 if length > max_length and self.is_chain_valid(chain):
                     max_length = length

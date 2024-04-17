@@ -129,4 +129,3 @@ def refresh_node_list():
         except Exception as e:
             print(f"Error during node discovery refresh: {e}")
         time.sleep(60)
-
